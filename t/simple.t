@@ -7,16 +7,12 @@ use Test::More;
     package AnOutput;
     use Moo;
 
-    use MooX::Types::MooseLike::Base qw(ArrayRef HashRef Str);
+    use MooX::Types::MooseLike::Base qw(ArrayRef);
 
+    sub _build_ldo_name         {'an_output'}
     sub _build_ldo_package_name {'Log::Dispatch::Array'}
 
-    sub _build_ldo_defaults {
-        {   name      => 'an_output',
-            min_level => 'debug',
-            array     => $_[0]->_messages,
-        };
-    }
+    with 'Log::Dis::Patchy::Output';
 
     has _messages => (
         is      => 'ro',
@@ -25,27 +21,66 @@ use Test::More;
         clearer => 1,
     );
 
-    with 'Log::Dis::Patchy::Output';
+    around _build_ldo_init_args => sub {
+        my ( $orig, $self ) = ( shift, shift );
+        my $args = $self->$orig(@_);
+        $args = { %{$args}, array => $self->_messages, };
+        return $args;
+    };
 }
 
 {
 
     package FileOutput;
     use Moo;
-    use MooX::Types::MooseLike::Base qw(Str);
-    use Log::Dis::Patchy::Helpers qw(add_newline_callback);
 
+    use File::Spec;
+    use Log::Dis::Patchy::Helpers qw(add_newline_callback);
+    use MooX::Types::MooseLike::Base qw(ArrayRef CodeRef InstanceOf Str);
+    use Path::Tiny;
+
+    sub _build_ldo_name         {'file_output'}
     sub _build_ldo_package_name {'Log::Dispatch::File'}
 
-    sub _build_ldo_defaults {
-        {   name      => 'file',
-            min_level => 'debug',
-            filename  => '/tmp/foo',
-            callbacks => [ add_newline_callback, ],
-        };
+    with 'Log::Dis::Patchy::Output';
+
+    has log_path => ( is => 'lazy', isa => Str, );
+    sub _build_log_path { File::Spec->tmpdir; }
+
+    has log_file => ( is => 'lazy', isa => Str, );
+
+    sub _build_log_file {
+        sprintf( '%s.%04u%02u%02u',
+            $_[0]->ldo_name,
+            ( (localtime)[5] + 1900 ),
+            sprintf( '%02d', (localtime)[4] + 1 ),
+            sprintf( '%02d', (localtime)[3] ),
+        );
     }
 
-    with 'Log::Dis::Patchy::Output';
+    has _filename => (
+        is       => 'lazy',
+        init_arg => undef,
+        isa      => InstanceOf ['Path::Tiny'],
+    );
+
+    sub _build__filename {
+        return path( $_[0]->log_path, $_[0]->log_file );
+    }
+
+    has callbacks => ( is => 'lazy', isa => ArrayRef [CodeRef], );
+    sub _build_callbacks { [add_newline_callback] }
+
+    around _build_ldo_init_args => sub {
+        my ( $orig, $self ) = ( shift, shift );
+        my $args = {
+            %{ $self->$orig(@_) },
+            filename  => path( $self->log_path, $self->log_file ) . "",
+            callbacks => $self->callbacks,
+        };
+        return $args;
+    };
+
 }
 
 {
@@ -53,18 +88,23 @@ use Test::More;
     package MyStdLogger;
     use Moo;
 
-    sub _build_outputs { [ 'AnOutput', ] }
+    use Log::Dis::Patchy::Helpers qw(log_pid_callback);
+
+    sub _build_outputs {
+        [ 'AnOutput', 'FileOutput' ];
+    }
+
+    sub _build_callbacks {
+        [ log_pid_callback() ];
+    }
 
     with qw(Log::Dis::Patchy);
 }
 
-use Log::Dis::Patchy::Helpers qw(log_pid_callback);
-
 my $l = MyStdLogger->new(
     {   ident => 'foo',
-        outputs =>
-            [ 'AnOutput', 'FileOutput' => { filename => '/tmp/zowy' }, ],
-        callbacks => [ log_pid_callback() ],
+
+        #        outputs => [ 'FileOutput' => { log_file => 'zowy', }, ],
     }
 );
 

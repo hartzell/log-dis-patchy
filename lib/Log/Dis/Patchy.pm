@@ -1,40 +1,31 @@
 package Log::Dis::Patchy;
 
+# ABSTRACT: Easy way to build your own Log::Dispatch wrapper
+
 use Moo::Role;
 
 use Class::Load qw(load_class);
 use Data::OptList;
 use Log::Dispatch;
-use MooX::Types::MooseLike::Base qw(ArrayRef CodeRef HashRef InstanceOf);
+use MooX::Types::MooseLike::Base qw(ArrayRef CodeRef InstanceOf Str);
 
-has callbacks => (
-    is      => 'ro',
-    isa     => ArrayRef [CodeRef],
-    default => sub { [] },
-);
+has callbacks => ( is => 'lazy', isa => ArrayRef [CodeRef], );
+
+has ident => ( is => 'ro', isa => Str, required => 1, );
 
 has outputs => (
     is     => 'lazy',
     isa    => ArrayRef,
-    coerce => sub { Data::OptList::mkopt( $_[0], { moniker => 'yikes' } ) },
+    coerce => sub { Data::OptList::mkopt( $_[0], { moniker => 'outputs' } ) },
 );
-
-has ident => ( is => 'ro', required => 1, );
+sub _build_outputs { [] }
 
 =attr _dispatcher
 
 A lazy C<InstanceOf['Log::Dispatch']> holds the L<Log::Dispatch> object to
 which messages are sent.
 
-=method dispatcher
-
-Moo-generated getter for the dispatch object.
-
 "This is not the method you're looking for.  Move along."
-
-=method clear__dispatcher
-
-A Moo-generated clearer for L</_dispatcher>.
 
 =cut
 
@@ -42,14 +33,14 @@ has _dispatcher => (
     is       => 'lazy',
     isa      => InstanceOf ['Log::Dispatch'],
     init_arg => undef,
-    clearer  => 1,
 );
 
 =method _build__dispatcher
 
-Builder for L</_dispatcher>.  Creates a new L<Log::Dispatch> instance, adds the
-contents of L</_outputs> to its set of outputs and adds the contents of
-L<_callback> to its callbacks list.
+Builder for L</_dispatcher>.  Creates a new L<Log::Dispatch> instance; loads,
+instantiates, and adds the contents of L</_outputs> to the dispatcher's set of
+outputs and adds the contents of L<_callback> to the dispatcher's callbacks
+list.
 
 =cut
 
@@ -59,23 +50,21 @@ sub _build__dispatcher {
 
     for my $aref ( @{ $self->outputs } ) {
         my $package_name = $aref->[0];
-        my $options = $aref->[1] || {};
+        my $init_args = $aref->[1] || {};
 
         load_class($package_name)
             or die "Unable to load class: $package_name";
-        my $patchy_output = $package_name->new( { options => $options } );
-        my $output = $patchy_output->output;
 
-        if ( $dispatcher->output( $output->name ) ) {
-            die "Duplicate outputs named: " . $output->name;
-        }
+        my $po     = $package_name->new($init_args);    # patchy output object
+        my $output = $po->output;
+
+        die "Output names must be unique, found duplicates: " . $output->name
+            if ( $dispatcher->output( $output->name ) );
 
         $dispatcher->add($output);
     }
 
-    for my $callback (@{$self->callbacks}) {
-        $dispatcher->add_callback($callback);
-    }
+    $dispatcher->add_callback($_) for ( @{ $self->callbacks } );
 
     return $dispatcher;
 }
