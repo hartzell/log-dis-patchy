@@ -90,13 +90,9 @@ use Test::More;
 
     use Log::Dis::Patchy::Helpers qw(log_pid_callback);
 
-    sub _build_outputs {
-        [ 'AnOutput', 'FileOutput' ];
-    }
+    sub _build_outputs { [ 'AnOutput', 'FileOutput' ] }
 
-    sub _build_callbacks {
-        [ log_pid_callback() ];
-    }
+    sub _build_callbacks { [ log_pid_callback() ] }
 
     with qw(Log::Dis::Patchy);
 }
