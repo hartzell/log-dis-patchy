@@ -97,12 +97,7 @@ use Test::More;
     with qw(Log::Dis::Patchy);
 }
 
-my $l = MyStdLogger->new(
-    {   ident => 'foo',
-
-        #        outputs => [ 'FileOutput' => { log_file => 'zowy', }, ],
-    }
-);
+my $l = MyStdLogger->new( { ident => 'foo', } );
 
 $DB::single = 1;
 
