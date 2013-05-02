@@ -2,14 +2,26 @@ package Log::Dis::Patchy;
 
 # ABSTRACT: Easy way to build your own Log::Dispatch wrapper
 
+=head1 SYNOPSIS
+
+TODO
+
+=head1 DESCRIPTION
+
+TODO
+
+=cut
+
 use Moo::Role;
+
+use namespace::autoclean;
 
 use Class::Load qw(load_class);
 use Data::OptList;
 use Log::Dispatch;
 use MooX::Types::MooseLike::Base
     qw(AnyOf ArrayRef Bool CodeRef ConsumerOf Enum InstanceOf Str Undef);
-use Params::Util qw(_ARRAY0 _HASH0);
+use Params::Util qw(_ARRAY0 _HASH0 _CODELIKE);
 use Try::Tiny;
 
 =attr callbacks
@@ -149,10 +161,6 @@ init_args on instantiation.
 
 See </_build_outputs>.
 
-=method _build_outputs
-
-Builder for L</outputs>, returns a reference to an empty array.
-
 =cut
 
 has outputs => (
@@ -160,13 +168,12 @@ has outputs => (
     isa    => ArrayRef [ArrayRef],
     coerce => sub { Data::OptList::mkopt( $_[0], { moniker => 'outputs' } ) },
 );
-sub _build_outputs { [] }
 
 =attr prefix
 
-A lazy attribute, either a coderef or string used to prefix the log message.  A
-coderef is called with the message string as its only argument and is expected
-to return a string.  String prefixes are prepended the message string.
+Either a coderef or string used to prefix the log message.  A coderef is called
+with the message string as its only argument and is expected to return a
+string.  String prefixes are prepended the message string.
 
 See L<_build_prefix>.
 
@@ -177,11 +184,10 @@ Moo-provided clearer for L</prefix>.
 =cut
 
 has prefix => (
-    is      => 'lazy',
+    is      => 'rw',
     isa     => AnyOf [ CodeRef, Str, Undef ],
     clearer => 1,
 );
-sub _build_prefix {return}
 
 =attr quiet_fatal
 
@@ -299,20 +305,20 @@ Almost, but not quite verbatim from Log::Dispatchouli.
 
 sub log {
     my ( $self, @rest ) = @_;
-    my $arg = _HASH0( $rest[0] ) ? shift(@rest) : {};
+    my $opt = _HASH0( $rest[0] ) ? shift(@rest) : {};
 
     my $message;
 
-    if ( $arg->{fatal} or not $self->muted ) {
+    if ( $opt->{fatal} or not $self->muted ) {
         try {
             my @flogged = map { $self->flogger->flog($_) } @rest;
 
             $message = join q{ }, @flogged;
 
             my $prefix
-                = _ARRAY0( $arg->{prefix} )
-                ? $arg->{prefix}
-                : [ $arg->{prefix} ];
+                = _ARRAY0( $opt->{prefix} )
+                ? $opt->{prefix}
+                : [ $opt->{prefix} ];
 
             for ( reverse grep {defined} $self->prefix, @$prefix ) {
                 if ( _CODELIKE($_) ) {
@@ -324,7 +330,7 @@ sub log {
             }
 
             $self->_dispatcher->log(
-                level => $arg->{level} || 'info',
+                level => $opt->{level} || 'info',
                 message => $message,
             );
         }
@@ -334,7 +340,7 @@ sub log {
         };
     }
 
-    die $message if $arg->{fatal};
+    die $message if $opt->{fatal};
 
     return;
 }
@@ -358,11 +364,11 @@ sub log_debug {
 
     return unless $self->debug;
 
-    my $arg = _HASH0( $rest[0] ) ? shift(@rest) : {};   # for future expansion
+    my $opt = _HASH0( $rest[0] ) ? shift(@rest) : {};   # for future expansion
 
-    local $arg->{level} = defined $arg->{level} ? $arg->{level} : 'debug';
+    local $opt->{level} = defined $opt->{level} ? $opt->{level} : 'debug';
 
-    $self->log( $arg, @rest );
+    $self->log( $opt, @rest );
 }
 
 =method log_fatal
@@ -383,12 +389,12 @@ Verbatim from Log::Dispatchouli.
 sub log_fatal {
     my ( $self, @rest ) = @_;
 
-    my $arg = _HASH0( $rest[0] ) ? shift(@rest) : {};   # for future expansion
+    my $opt = _HASH0( $rest[0] ) ? shift(@rest) : {};   # for future expansion
 
-    local $arg->{level} = defined $arg->{level} ? $arg->{level} : 'error';
-    local $arg->{fatal} = defined $arg->{fatal} ? $arg->{fatal} : 1;
+    local $opt->{level} = defined $opt->{level} ? $opt->{level} : 'error';
+    local $opt->{fatal} = defined $opt->{fatal} ? $opt->{fatal} : 1;
 
-    $self->log( $arg, @rest );
+    $self->log( $opt, @rest );
 }
 
 =method message
@@ -406,7 +412,7 @@ sub messages {
     my $self = shift;
 
     my @messages = map { @{ $_->messages } }
-        grep { $_->can('messages') } @{ $self->_output_objs };
+        grep { $_->can('messages') } @{ $self->_patchy_outputs };
 
     return \@messages;
 }
@@ -425,12 +431,37 @@ See L</messages>.
 sub reset_messages {
     my $self = shift;
     $_->reset_messages
-        for grep { $_->can('reset_messages') } @{ $self->_output_objs };
+        for grep { $_->can('reset_messages') } @{ $self->patchy_outputs };
 
     return;
 }
 
+has _proxy_package => (
+    is       => 'lazy',
+    init_arg => undef,
+    coerce   => sub { load_class( $_[0] ) or die "Unable to load " . $_[0] }
+);
+sub _build__proxy_package {'Log::Dis::Patchy::Proxy'}
+
+sub proxy {
+    my $self = shift;
+    my $opt = shift || {};
+
+    my $p = $self->_proxy_package->new(
+        {   logger => $self,
+            %{$opt},
+        }
+    );
+    return $p;
+}
+
+=requires _build_outputs
+
+Builder for L</outputs>, returns a reference to the information described in
+L</outputs>.
+
+=cut
+
 requires qw(_build_outputs);
 
-no Moo::Role;
 1;
