@@ -1,0 +1,7 @@
+
+How to handle environment variables.  rjbs has it easy, it all happens
+in Dispatchouli.pm.  Not as useful when something happening in
+OutputA.pm and OutputB.pm...
+
+What do to with quiet_fatal?  Attribute is there, but how can outputs
+take advantage of it?  Callback?
