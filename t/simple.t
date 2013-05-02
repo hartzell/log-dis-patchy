@@ -14,17 +14,18 @@ use Test::More;
 
     with 'Log::Dis::Patchy::Output';
 
-    has _messages => (
+    has messages => (
         is      => 'ro',
         isa     => ArrayRef,
         default => sub { [] },
-        clearer => 1,
     );
+
+    sub reset_messages { @{ $_[0]->messages } = () }
 
     around _build_ldo_init_args => sub {
         my ( $orig, $self ) = ( shift, shift );
         my $args = $self->$orig(@_);
-        $args = { %{$args}, array => $self->_messages, };
+        $args = { %{$args}, array => $self->messages, };
         return $args;
     };
 }
@@ -103,6 +104,8 @@ $DB::single = 1;
 
 isa_ok( $l->_dispatcher, "Log::Dispatch" );
 
-$l->_dispatcher->log( level => 'debug', message => "shite!" );
+$l->log("shite!");
+$l->log_debug("debugging shite!");
 
+print "foo";
 done_testing;
