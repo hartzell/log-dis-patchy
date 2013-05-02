@@ -36,7 +36,9 @@ use Test::More;
     use Moo;
 
     use File::Spec;
-    use Log::Dis::Patchy::Helpers qw(add_newline_callback);
+    use Log::Dis::Patchy::Helpers qw(add_newline_callback
+        timestamp_prefix_callback
+    );
     use MooX::Types::MooseLike::Base qw(ArrayRef CodeRef InstanceOf Str);
     use Path::Tiny;
 
@@ -70,7 +72,10 @@ use Test::More;
     }
 
     has callbacks => ( is => 'lazy', isa => ArrayRef [CodeRef], );
-    sub _build_callbacks { [add_newline_callback] }
+
+    sub _build_callbacks {
+        [ timestamp_prefix_callback, add_newline_callback ];
+    }
 
     around _build_ldo_init_args => sub {
         my ( $orig, $self ) = ( shift, shift );
@@ -78,6 +83,7 @@ use Test::More;
             %{ $self->$orig(@_) },
             filename  => path( $self->log_path, $self->log_file ) . "",
             callbacks => $self->callbacks,
+            mode      => 'append',
         };
         return $args;
     };
@@ -91,7 +97,14 @@ use Test::More;
 
     use Log::Dis::Patchy::Helpers qw(log_pid_callback);
 
-    sub _build_outputs { [ 'AnOutput', 'FileOutput' ] }
+    sub _build_outputs {
+        [   'AnOutput',
+            'FileOutput' => {
+                log_path => '/tmp',
+                log_file => 'fu-dog',
+            }
+        ];
+    }
 
     sub _build_callbacks { [ log_pid_callback() ] }
 
@@ -104,8 +117,13 @@ $DB::single = 1;
 
 isa_ok( $l->_dispatcher, "Log::Dispatch" );
 
+$l->mute();
 $l->log("shite!");
+$l->unmute();
+$l->log("bollocks!");
 $l->log_debug("debugging shite!");
+$l->debug(1);
+$l->log_debug("debugging bollocks");
 
 print "foo";
 done_testing;
