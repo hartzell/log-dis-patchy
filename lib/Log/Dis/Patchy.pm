@@ -12,9 +12,9 @@ TODO
 
 =cut
 
-use Moo::Role;
-
 use namespace::autoclean;
+
+use Moo::Role;
 
 use Class::Load qw(load_class);
 use Data::OptList;
