@@ -12,6 +12,8 @@ TODO
 
 =cut
 
+use namespace::autoclean;
+
 use Moo::Role;
 
 use Class::Load qw(load_class);
@@ -132,8 +134,6 @@ defines the L<Log::Dispatch::Output> subclass that will be instantiated.
 =cut
 
 requires qw( _build_ldo_name _build_ldo_package_name );
-
-no Moo::Role;
 
 =head1 SEE ALSO
 
