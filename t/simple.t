@@ -115,8 +115,6 @@ use Test::More;
 
 my $l = MyStdLogger->new( { ident => 'foo', } );
 
-$DB::single = 1;
-
 isa_ok( $l->_dispatcher, "Log::Dispatch" );
 
 $l->mute();
@@ -127,5 +125,4 @@ $l->log_debug("debugging shite!");
 $l->debug(1);
 $l->log_debug("debugging bollocks");
 
-print "foo";
 done_testing;

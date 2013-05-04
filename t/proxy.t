@@ -135,5 +135,4 @@ $p->log_debug("debugging bollocks");
 $p->clear_prefix;
 $p->log_debug("debugging bollocks without zoinks");
 
-print "foo";
 done_testing;
