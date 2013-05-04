@@ -39,7 +39,7 @@ use Test::More;
 
     use File::Spec;
     use Log::Dis::Patchy::Helpers qw(append_newline_callback
-                                     prepend_timestamp_callback
+        prepend_timestamp_callback
     );
     use MooX::Types::MooseLike::Base qw(ArrayRef CodeRef InstanceOf Str);
     use Path::Tiny;
@@ -108,7 +108,7 @@ use Test::More;
         ];
     }
 
-    sub _build_callbacks { [ prepend_pid_callback ] }
+    sub _build_callbacks { [prepend_pid_callback] }
 
     with qw(Log::Dis::Patchy);
 }

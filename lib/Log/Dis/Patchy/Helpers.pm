@@ -1,7 +1,9 @@
 
 use strict;
 use warnings;
+
 package Log::Dis::Patchy::Helpers;
+
 # ABSTRACT: Helpful things for Log::Dis::Patchy users.
 
 =head1 SYNOPSIS
