@@ -120,9 +120,10 @@ $DB::single = 1;
 isa_ok( $l->_dispatcher, "Log::Dispatch" );
 
 use Log::Dis::Patchy::Proxy;
-my $p = Log::Dis::Patchy::Proxy->new(parent => $l,
-                                     proxy_prefix => 'PROXY: ',
-                                 );
+my $p = Log::Dis::Patchy::Proxy->new(
+    parent       => $l,
+    proxy_prefix => 'PROXY: ',
+);
 
 $p->mute();
 $p->log("shite!");

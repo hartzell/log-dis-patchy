@@ -14,7 +14,7 @@ test 'exercise a class that consumes role' => sub {
     my $self     = shift;
     my $ldpo_obj = LDPO->new( { an_arg => 'a_value' } );
     my $output   = $ldpo_obj->output;
-    isa_ok($output, 'Log::Dispatch::Output', 'the output object');
+    isa_ok( $output, 'Log::Dispatch::Output', 'the output object' );
     cmp_deeply(
         $output->{args_to_ldo_new},
         {   name      => 'test_output',
