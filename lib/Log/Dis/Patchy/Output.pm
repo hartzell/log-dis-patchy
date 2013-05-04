@@ -16,6 +16,7 @@ use namespace::autoclean;
 
 use Moo::Role;
 
+use Carp;
 use Class::Load qw(load_class);
 use MooX::Types::MooseLike::Base qw(HashRef InstanceOf Str);
 
@@ -31,7 +32,10 @@ Builder for L</ldo_max_level>, returns 'emergency'.
 =cut
 
 has ldo_max_level => ( is => 'lazy', isa => Str, );
-sub _build_ldo_max_level {'emergency'}
+
+sub _build_ldo_max_level {    ## no critic(ProhibitUnusedPrivateSubroutines)
+    return 'emergency';
+}
 
 =attr ldo_min_level
 
@@ -45,7 +49,10 @@ Builder for L</ldo_min_level>, returns 'debug'.
 =cut
 
 has ldo_min_level => ( is => 'lazy', isa => Str, );
-sub _build_ldo_min_level {'debug'}
+
+sub _build_ldo_min_level {    ## no critic(ProhibitUnusedPrivateSubroutines)
+    return 'debug';
+}
 
 =attr ldo_name
 
@@ -68,7 +75,7 @@ has ldo_package_name => (
     is     => 'lazy',
     isa    => Str,
     coerce => sub {
-        load_class( $_[0] ) or die "Unable to load " . $_[0];
+        load_class( $_[0] ) or croak "Unable to load " . $_[0];
     },
 
 );
@@ -88,7 +95,7 @@ L</ldo_min_level>.
 
 has ldo_init_args => ( is => 'lazy', isa => HashRef, );
 
-sub _build_ldo_init_args {
+sub _build_ldo_init_args {    ## no critic(ProhibitUnusedPrivateSubroutines)
     my $self = shift;
     return {
         name      => $self->ldo_name,
@@ -114,7 +121,7 @@ has output => (
     isa => InstanceOf ['Log::Dispatch::Output'],
 );
 
-sub _build_output {
+sub _build_output {    ## no critic(ProhibitUnusedPrivateSubroutines)
     my $self = shift;
 
     my $package = $self->ldo_package_name;

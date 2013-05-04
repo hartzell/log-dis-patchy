@@ -145,9 +145,9 @@ has debug => (
 );
 
 sub debug {
-    my $self = shift;
-    return $self->set_local_debug(@_) if @_;
-    return $self->get_local_debug()   if $self->has_local_debug;
+    my ( $self, @args ) = @_;
+    return $self->set_local_debug(@args) if @args;
+    return $self->get_local_debug() if $self->has_local_debug;
     return $self->parent->debug();
 }
 
@@ -199,9 +199,9 @@ has muted => (
 );
 
 sub muted {
-    my $self = shift;
-    return $self->set_local_muted(@_) if @_;
-    return $self->get_local_muted()   if $self->has_local_muted;
+    my ( $self, @args ) = @_;
+    return $self->set_local_muted(@args) if @args;
+    return $self->get_local_muted() if $self->has_local_muted;
     return $self->parent->muted();
 }
 
@@ -215,8 +215,8 @@ Sets L</muted> to 0.
 
 =cut
 
-sub mute   { $_[0]->muted(1) }
-sub unmute { $_[0]->muted(0) }
+sub mute   { my $self = shift; return $self->muted(1) }
+sub unmute { my $self = shift; return $self->muted(0) }
 
 =method log
 
@@ -229,7 +229,7 @@ Almost a clone of L<Log::Dispatchouli::Proxy/log>.
 
 =cut
 
-sub log {
+sub log {    ## no critic(ProhibitBuiltinHomonyms)
     my ( $self, @rest ) = @_;
     my $opt = _HASH0( $rest[0] ) ? shift(@rest) : {};
 
@@ -237,7 +237,7 @@ sub log {
 
     local $opt->{prefix} = $self->_get_all_prefixes($opt);
 
-    $self->parent->log( $opt, @rest );
+    return $self->parent->log( $opt, @rest );
 }
 
 =method log_fatal
@@ -255,7 +255,7 @@ sub log_fatal {
     my $opt = _HASH0( $rest[0] ) ? shift(@rest) : {};
     local $opt->{fatal} = 1;
 
-    $self->log( $opt, @rest );
+    return $self->log( $opt, @rest );
 }
 
 =method log_debug
@@ -277,7 +277,7 @@ sub log_debug {
     my $opt = _HASH0( $rest[0] ) ? shift(@rest) : {};
     local $opt->{level} = 'debug';
 
-    $self->log( $opt, @rest );
+    return $self->log( $opt, @rest );
 }
 
 =head1 SEE ALSO

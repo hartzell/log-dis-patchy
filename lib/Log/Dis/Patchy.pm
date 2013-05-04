@@ -16,6 +16,7 @@ use namespace::autoclean;
 
 use Moo::Role;
 
+use Carp;
 use Class::Load qw(load_class);
 use Data::OptList;
 use Log::Dispatch;
@@ -48,7 +49,10 @@ Override/modify to provide your desired set of default callbacks.
 =cut
 
 has callbacks => ( is => 'lazy', isa => ArrayRef [CodeRef], );
-sub _build_callbacks { [] }
+
+sub _build_callbacks {    ## no critic(ProhibitUnusedPrivateSubroutines)
+    return [];
+}
 
 =attr config_id
 
@@ -66,7 +70,11 @@ has config_id => (
     is  => 'lazy',
     isa => Str,
 );
-sub _build_config_id { return $_[0]->ident }
+
+sub _build_config_id {    ## no critic(ProhibitUnusedPrivateSubroutines)
+    my $self = shift;
+    return $self->ident;
+}
 
 =attr debug
 
@@ -106,9 +114,15 @@ provide a different default.
 has flogger => (
     is     => 'lazy',
     isa    => Str,
-    coerce => sub { load_class( $_[0] ) or die "Unable to load " . $_[0] }
+    coerce => sub {
+        my $pkg = shift;
+        load_class($pkg) or croak "Unable to load " . $pkg;
+    }
 );
-sub _build_flogger {'String::Flogger'}
+
+sub _build_flogger {    ## no critic(ProhibitUnusedPrivateSubroutines)
+    return 'String::Flogger';
+}
 
 =attr ident
 
@@ -134,8 +148,8 @@ Sets L</mute> to 0.
 =cut
 
 has muted => ( is => 'rw', isa => Bool, default => 0 );
-sub mute   { $_[0]->muted(1) }
-sub unmute { $_[0]->muted(0) }
+sub mute   { my $self = shift; return $self->muted(1) }
+sub unmute { my $self = shift; return $self->muted(0) }
 
 =attr outputs
 
@@ -210,7 +224,10 @@ has quiet_fatal => (
     isa    => ArrayRef [ Enum [ 'stdout', 'stderr' ] ],
     coerce => sub { _ARRAY0( $_[0] ) ? $_[0] : [ $_[0] ] },
 );
-sub _build_quiet_fatal { return ['stderr']; }
+
+sub _build_quiet_fatal {    ## no critic(ProhibitUnusedPrivateSubroutines)
+    return ['stderr'];
+}
 
 =attr _dispatcher
 
@@ -234,14 +251,15 @@ has _dispatcher => (
     init_arg => undef,
 );
 
-sub _build__dispatcher {
+sub _build__dispatcher {    ## no critic(ProhibitUnusedPrivateSubroutines)
     my $self       = shift;
     my $dispatcher = Log::Dispatch->new();
 
     for my $po ( @{ $self->_patchy_outputs } ) {
         my $output = $po->output;    # grab the Log::Dispatch::Output instance
 
-        die "Output names must be unique, found duplicates: " . $output->name
+        croak "Output names must be unique, found duplicates: "
+            . $output->name
             if ( $dispatcher->output( $output->name ) );
 
         $dispatcher->add($output);
@@ -267,7 +285,7 @@ has _patchy_outputs => (
     isa => ArrayRef [ ConsumerOf ['Log::Dis::Patchy::Output'] ],
 );
 
-sub _build__patchy_outputs {
+sub _build__patchy_outputs {    ## no critic(ProhibitUnusedPrivateSubroutines)
     my $self = shift;
     my $outputs;
 
@@ -276,7 +294,7 @@ sub _build__patchy_outputs {
         my $init_args = $aref->[1] || {};
 
         load_class($package_name)
-            or die "Unable to load class: $package_name";
+            or croak "Unable to load class: $package_name";
 
         push @$outputs, $package_name->new($init_args); # patchy output object
 
@@ -303,7 +321,7 @@ Almost, but not quite verbatim from Log::Dispatchouli.
 
 =cut
 
-sub log {
+sub log {    ## no critic(ProhibitBuiltinHomonyms)
     my ( $self, @rest ) = @_;
     my $opt = _HASH0( $rest[0] ) ? shift(@rest) : {};
 
@@ -325,7 +343,7 @@ sub log {
                     $message = $_->($message);
                 }
                 else {
-                    $message =~ s/^/$_/gm;
+                    $message =~ s/^/$_/xgm;
                 }
             }
 
@@ -336,11 +354,11 @@ sub log {
         }
         catch {
             $message = '(no message could be logged)' unless defined $message;
-            die $_ if $self->{failure_is_fatal};
+            croak $_ if $self->{failure_is_fatal};
         };
     }
 
-    die $message if $opt->{fatal};
+    croak $message if $opt->{fatal};
 
     return;
 }
@@ -368,7 +386,7 @@ sub log_debug {
 
     local $opt->{level} = defined $opt->{level} ? $opt->{level} : 'debug';
 
-    $self->log( $opt, @rest );
+    return $self->log( $opt, @rest );
 }
 
 =method log_fatal
@@ -394,10 +412,10 @@ sub log_fatal {
     local $opt->{level} = defined $opt->{level} ? $opt->{level} : 'error';
     local $opt->{fatal} = defined $opt->{fatal} ? $opt->{fatal} : 1;
 
-    $self->log( $opt, @rest );
+    return $self->log( $opt, @rest );
 }
 
-=method message
+=method messages
 
 TODO use a role instead of can....
 
@@ -439,9 +457,19 @@ sub reset_messages {
 has _proxy_package => (
     is       => 'lazy',
     init_arg => undef,
-    coerce   => sub { load_class( $_[0] ) or die "Unable to load " . $_[0] }
+    coerce   => sub { load_class( $_[0] ) or croak "Unable to load " . $_[0] }
 );
-sub _build__proxy_package {'Log::Dis::Patchy::Proxy'}
+
+sub _build__proxy_package {    ## no critic(ProhibitUnusedPrivateSubroutines)
+    return 'Log::Dis::Patchy::Proxy';
+}
+
+=method proxy
+
+Return an LDP::Proxy instance with the caller as its parent.  Accepts a hashref
+of options.  See L<Log::Dis::Patchy::Proxy>.
+
+=cut
 
 sub proxy {
     my $self = shift;
