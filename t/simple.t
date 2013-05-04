@@ -38,8 +38,8 @@ use Test::More;
     use Moo;
 
     use File::Spec;
-    use Log::Dis::Patchy::Helpers qw(add_newline_callback
-        timestamp_prefix_callback
+    use Log::Dis::Patchy::Helpers qw(append_newline_callback
+                                     prepend_timestamp_callback
     );
     use MooX::Types::MooseLike::Base qw(ArrayRef CodeRef InstanceOf Str);
     use Path::Tiny;
@@ -76,7 +76,7 @@ use Test::More;
     has callbacks => ( is => 'lazy', isa => ArrayRef [CodeRef], );
 
     sub _build_callbacks {
-        [ timestamp_prefix_callback, add_newline_callback ];
+        [ prepend_timestamp_callback, append_newline_callback ];
     }
 
     around _build_ldo_init_args => sub {
@@ -97,7 +97,7 @@ use Test::More;
     package MyStdLogger;
     use Moo;
 
-    use Log::Dis::Patchy::Helpers qw(log_pid_callback);
+    use Log::Dis::Patchy::Helpers qw(prepend_pid_callback);
 
     sub _build_outputs {
         [   'AnOutput',
@@ -108,7 +108,7 @@ use Test::More;
         ];
     }
 
-    sub _build_callbacks { [ log_pid_callback() ] }
+    sub _build_callbacks { [ prepend_pid_callback ] }
 
     with qw(Log::Dis::Patchy);
 }
