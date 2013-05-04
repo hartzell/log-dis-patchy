@@ -71,4 +71,7 @@ sub prepend_timestamp_callback {
 =for :list
 * L<Sub::Exporter>
 
+=cut
+
 1;
+
