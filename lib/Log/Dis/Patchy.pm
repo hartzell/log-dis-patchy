@@ -431,7 +431,7 @@ See L</messages>.
 sub reset_messages {
     my $self = shift;
     $_->reset_messages
-        for grep { $_->can('reset_messages') } @{ $self->patchy_outputs };
+        for grep { $_->can('reset_messages') } @{ $self->_patchy_outputs };
 
     return;
 }
