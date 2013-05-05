@@ -20,8 +20,8 @@ use Carp;
 use Class::Load qw(load_class);
 use Data::OptList;
 use Log::Dispatch;
-use MooX::Types::MooseLike::Base
-    qw(AnyOf ArrayRef Bool CodeRef ConsumerOf Enum InstanceOf Str Undef);
+use MooX::Types::MooseLike::Base qw(AnyOf ArrayRef Bool CodeRef ConsumerOf
+    Enum InstanceOf Str Undef);
 use Params::Util qw(_ARRAY0 _HASH0 _CODELIKE);
 use Try::Tiny;
 
@@ -43,7 +43,7 @@ See L<Log::Dis::Patchy::Helpers> for some helpful callback generators.
 
 =method _build_callbacks
 
-Builder for L</callbacks>.  Returns a reference to an empty array.
+Default builder for L</callbacks>.  Returns a reference to an empty array.
 Override/modify to provide your desired set of default callbacks.
 
 =cut
@@ -61,8 +61,8 @@ L</_build_config_id>.
 
 =method _build_config_id
 
-Builder for L</config_id>.  Returns the value of the L</ident> attribute.
-Override/modify to supply a different default.
+Default builder for L</config_id>.  Returns the value of the L</ident>
+attribute.  Override/modify to supply a different default.
 
 =cut
 
@@ -97,8 +97,8 @@ has failure_is_fatal => ( is => 'rw', isa => Bool, default => 1 );
 
 =attr flogger
 
-A lazy string, the name of the package used to flog messages before they are
-passed to L<Log::Dispatch>.
+A lazy string, the name of the package that provides the C<flog> method, which
+is used to flog messages before they are passed to L<Log::Dispatch>.
 
 The package is automatically loaded via L<Class::Load/load_class>.
 
@@ -106,8 +106,8 @@ See </_build_flogger>.
 
 =method _build_flogger
 
-Builder for L</flogger>.  Returns 'String::Flogger'.  Override/modify it to
-provide a different default.
+Default builder for L</flogger>.  Returns 'String::Flogger'.  Override/modify
+it to provide a different default.
 
 =cut
 
@@ -135,7 +135,7 @@ has ident => ( is => 'ro', isa => Str, required => 1, );
 =attr muted
 
 A boolean attribute, defaults to 0, that enables temporarily silencing logging.
-Set to 1 to mute.  See L</mute> and L</unmute>.
+Setting it to 1 to mutes (silences) logging.  See L</mute> and L</unmute>.
 
 =method mute
 
@@ -153,11 +153,12 @@ sub unmute { my $self = shift; return $self->muted(0) }
 
 =attr outputs
 
-Information used to configure the set of outputs that are added to the
-underlying L<Log::Dispatch> object.
+An arrayref of the information used to configure the set of outputs that are
+added to the underlying L<Log::Dispatch> object.
 
-It is an arrayref of arrayrefs, each inner array ref contains two scalars: a
-package name and a hashref of init_args for that package.  E.g.
+C<outputs> is an arrayref of arrayrefs, each inner array ref contains two
+scalars: a package name and a reference to a hashref of init_args for that
+package.  E.g.
 
   [ [ AnOutput => { an_arg => 1 } ], [ OtherOutput => {} ] ]
 
@@ -173,6 +174,8 @@ And really simple configurations only require the package names:
 Packages are loaded using L<Class::Load/load_class> and passed any supplied
 init_args on instantiation.
 
+See L<Data::OptList>.
+
 See </_build_outputs>.
 
 =cut
@@ -185,9 +188,9 @@ has outputs => (
 
 =attr prefix
 
-Either a coderef or string used to prefix the log message.  A coderef is called
-with the message string as its only argument and is expected to return a
-string.  String prefixes are prepended the message string.
+Either a coderef (which massages) or string which is prepended to) the log
+message.  A coderef is called with the message string as its only argument and
+is expected to return a string.
 
 See L<_build_prefix>.
 
@@ -203,32 +206,6 @@ has prefix => (
     clearer => 1,
 );
 
-=attr quiet_fatal
-
-TODO.  Currently unused....
-
-A lazy C<ArrayRef> containing zero, one, or both of the strings 'stdout' and
-'stderr'.  Listed outputs will not receive fatal log messages.  Will coerce
-single scalar values into an C<ArrayRef>.  See L<_build_quiet_fatal>.
-
-See L</_build_quiet_fatal>.
-
-=method _build_quiet_fatal
-
-Builder for L</quiet_fatal>.  Returns C<['stderr']>.
-
-=cut
-
-has quiet_fatal => (
-    is     => 'lazy',
-    isa    => ArrayRef [ Enum [ 'stdout', 'stderr' ] ],
-    coerce => sub { _ARRAY0( $_[0] ) ? $_[0] : [ $_[0] ] },
-);
-
-sub _build_quiet_fatal {    ## no critic(ProhibitUnusedPrivateSubroutines)
-    return ['stderr'];
-}
-
 =attr _dispatcher
 
 Private.  Hands off.  "This is not the method you're looking for.  Move along."
@@ -238,10 +215,10 @@ which messages are sent.
 
 =method _build__dispatcher
 
-Builder for L</_dispatcher>.  Creates a new L<Log::Dispatch> instance; loads,
-instantiates, and adds the contents of L</_outputs> to the dispatcher's set of
-outputs and adds the contents of L<_callback> to the dispatcher's callbacks
-list.
+Default builder for L</_dispatcher>.  Creates a new L<Log::Dispatch> instance;
+loads, instantiates, and adds the contents of L</_outputs> to the dispatcher's
+set of outputs and adds the contents of L<_callback> to the dispatcher's
+callbacks list.
 
 =cut
 
@@ -256,9 +233,9 @@ sub _build__dispatcher {    ## no critic(ProhibitUnusedPrivateSubroutines)
     my $dispatcher = Log::Dispatch->new();
 
     for my $po ( @{ $self->_patchy_outputs } ) {
-        my $output = $po->output;    # grab the Log::Dispatch::Output instance
+        my $output = $po->output();    # build LDO instance
 
-        croak "Output names must be unique, found duplicates: "
+        croak "Output names must be unique, found duplicates for: "
             . $output->name
             if ( $dispatcher->output( $output->name ) );
 
@@ -291,7 +268,7 @@ sub _build__patchy_outputs {    ## no critic(ProhibitUnusedPrivateSubroutines)
 
     for my $aref ( @{ $self->outputs } ) {
         my $package_name = $aref->[0];
-        my $init_args = $aref->[1] || {};
+        my $init_args = { _patchy => $self, %{ $aref->[1] || {} } };
 
         load_class($package_name)
             or croak "Unable to load class: $package_name";
@@ -313,9 +290,10 @@ options include:
 level  - Level at which to log the message.  Defaults to 'info'.
 prefix - A prefix, as described in L</prefix>.
 
-Remaining arguments are flogged (see L</flogger>) and joined into a single
-string (see L</_join>).  Each prefix is applied to the message (see
-L</prefix>).
+Remaining arguments are flogged (see L</flogger>) and joined with spaces into a
+single string.
+
+Each prefix is applied to the message (see L</prefix>).
 
 Almost, but not quite verbatim from Log::Dispatchouli.
 
@@ -491,5 +469,12 @@ L</outputs>.
 =cut
 
 requires qw(_build_outputs);
+
+=head1 SEE ALSO
+
+=for :list
+* L<Data::OptList>
+
+=cut
 
 1;

@@ -18,7 +18,7 @@ use Moo::Role;
 
 use Carp;
 use Class::Load qw(load_class);
-use MooX::Types::MooseLike::Base qw(HashRef InstanceOf Str);
+use MooX::Types::MooseLike::Base qw(ConsumerOf HashRef InstanceOf Str);
 
 =attr ldo_max_level
 
@@ -87,9 +87,9 @@ L<Log::Dispatch::Output> subclass named by L</ldo_package_name>.
 
 =method _build_ldo_init_args
 
-Builder for L</ldo_init_args>.  Sets C<name>, C<max_level> and C<min_level>
-using attributes supplied by this role.  See L</ldo_name>, L</ldo_max_level>,
-L</ldo_min_level>.
+Default builder for L</ldo_init_args>.  Sets C<name>, C<max_level> and
+C<min_level> using attributes supplied by this role.  See L</ldo_name>,
+L</ldo_max_level>, L</ldo_min_level>.
 
 =cut
 
@@ -97,6 +97,7 @@ has ldo_init_args => ( is => 'lazy', isa => HashRef, );
 
 sub _build_ldo_init_args {    ## no critic(ProhibitUnusedPrivateSubroutines)
     my $self = shift;
+
     return {
         name      => $self->ldo_name,
         max_level => $self->ldo_max_level,
@@ -110,7 +111,7 @@ A lazy instance of a L<Log::Dispatch::Output> subclass.
 
 =method _build_output
 
-Builder for L</output>, calls C<new> on the package named by
+Default builder for L</output>, calls C<new> on the package named by
 L</ldo_package_name>, passing it initialization args provided by
 L</ldo_init_args>.
 
@@ -124,8 +125,10 @@ has output => (
 sub _build_output {    ## no critic(ProhibitUnusedPrivateSubroutines)
     my $self = shift;
 
-    my $package = $self->ldo_package_name;
-    return $package->new( %{ $self->ldo_init_args } );
+    my $package   = $self->ldo_package_name;
+    my %init_args = %{ $self->ldo_init_args() };
+
+    return $package->new(%init_args);
 }
 
 =requires _build_ldo_name
@@ -139,6 +142,24 @@ Builder for L</ldo_package_name>, must return a name of the package that
 defines the L<Log::Dispatch::Output> subclass that will be instantiated.
 
 =cut
+
+=attr _patchy
+
+For internal use only.  No user-serviceable parts inside.
+
+A weak reference to the L<Log::Dis::Patchy> object which is taking advantage of
+this object's services.
+
+Useful for e.g. checking whether some special features (e.g. quiet_fatal) is
+set in the LDP instance.
+
+=cut
+
+has _patchy => (
+    is       => 'ro',
+    isa      => ConsumerOf ['Log::Dis::Patchy'],
+    weak     => 1,
+);
 
 requires qw( _build_ldo_name _build_ldo_package_name );
 

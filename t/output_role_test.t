@@ -35,7 +35,9 @@ run_me(
                 ldo_min_level _build_ldo_min_level
                 ldo_name ldo_package_name
                 ldo_init_args _build_ldo_init_args
-                output _build_output)
+                output _build_output
+                _patchy
+                )
         ],
         required_subs => [qw( _build_ldo_name _build_ldo_package_name )],
     }

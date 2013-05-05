@@ -13,6 +13,14 @@ with qw(Test::Log::Dis::Patchy::RoleTester);
     with qw(Log::Dis::Patchy);
 }
 
+{
+
+    package LDPQF;
+    use Moo;
+    sub _build_outputs { ['LDPO'] }
+    with qw(Log::Dis::Patchy Log::Dis::Patchy::QuietFatal);
+}
+
 test 'build a logger, is it cool?' => sub {
     my $self = shift;
     my $logger = LDP->new( { ident => 'test_me' } );
@@ -79,6 +87,14 @@ test 'build a logger, is it cool?' => sub {
 
 };
 
+test 'build a logger with quiet fatal' => sub {
+    my $self = shift;
+    my $logger = LDPQF->new( { ident => 'test_me_fatal' } );
+
+    isa_ok( $logger, 'LDPQF', 'The logger' );
+    is( $logger->does('Log::Dis::Patchy::QuietFatal'), 1, 'Does the role' );
+};
+
 run_me(
     'test Log::Dis::Patchy',
     {   role_name     => 'Log::Dis::Patchy',
@@ -89,7 +105,6 @@ run_me(
                 callbacks _build_callbacks
                 config_id _build_config_id
                 flogger _build_flogger
-                quiet_fatal _build_quiet_fatal
 
                 debug
                 failure_is_fatal
@@ -109,6 +124,13 @@ run_me(
                 )
         ],
         required_subs => [qw( _build_outputs )],
+    }
+);
+
+run_me(
+    'test Log::Dis::Patchy::QuietFatal',
+    {   role_name     => 'Log::Dis::Patchy::QuietFatal',
+        expected_subs => [qw( quiet_fatal _build_quiet_fatal )],
     }
 );
 
