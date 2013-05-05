@@ -233,7 +233,7 @@ sub _build__dispatcher {    ## no critic(ProhibitUnusedPrivateSubroutines)
     my $dispatcher = Log::Dispatch->new();
 
     for my $po ( @{ $self->_patchy_outputs } ) {
-        my $output = $po->output();    # build LDO instance
+        my $output = $po->output;    # build LDO instance
 
         croak "Output names must be unique, found duplicates for: "
             . $output->name
