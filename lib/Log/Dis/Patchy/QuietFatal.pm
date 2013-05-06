@@ -4,6 +4,7 @@ use namespace::autoclean;
 use Moo::Role;
 
 use MooX::Types::MooseLike::Base qw( ArrayRef Enum );
+use Params::Util qw(_ARRAY0);
 
 =attr quiet_fatal
 
