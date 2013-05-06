@@ -99,7 +99,11 @@ has debug => (
     builder => '_build_debug',
     coerce  => sub { my $arg = shift; $arg ? 1 : 0 },
 );
-sub _build_debug { my $self = shift; return 0; }
+
+sub _build_debug {    ## no critic(ProhibitUnusedPrivateSubroutines)
+    my $self = shift;
+    return 0;
+}
 
 =attr failure_is_fatal
 
@@ -124,7 +128,11 @@ has failure_is_fatal => (
     builder => '_build_failure_is_fatal',
     coerce  => sub { my $arg = shift; $arg ? 1 : 0 },
 );
-sub _build_failure_is_fatal { my $self = shift; return 1; }
+
+sub _build_failure_is_fatal {   ## no critic(ProhibitUnusedPrivateSubroutines)
+    my $self = shift;
+    return 1;
+}
 
 =attr flogger
 
@@ -500,6 +508,13 @@ L</outputs>.
 =cut
 
 requires qw(_build_outputs);
+
+=head1 VS DISPATCHOULI
+
+=for :list
+* we use 'failure_is_fatal' where Log::Dispathouli uses 'fail_fatal'.
+* we use 'messages' and 'reset_messages' where Log::Dispathouli uses 'events'
+  and 'clear_events'
 
 =head1 SEE ALSO
 
