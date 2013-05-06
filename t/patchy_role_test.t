@@ -106,8 +106,8 @@ run_me(
                 config_id _build_config_id
                 flogger _build_flogger
 
-                debug
-                failure_is_fatal
+                debug _build_debug
+                failure_is_fatal _build_failure_is_fatal
                 ident
                 muted mute unmute
                 outputs

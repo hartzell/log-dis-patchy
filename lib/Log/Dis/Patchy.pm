@@ -78,22 +78,53 @@ sub _build_config_id {    ## no critic(ProhibitUnusedPrivateSubroutines)
 
 =attr debug
 
-A read-write boolean attribute, defaults to 0, that controls debug logging.
-Set it to 1 enable logging via log_debug, set it to 0 to quietly drop log_debug
-messages.
+A read-write boolean attribute that controls debug logging.  Set it to 1 enable
+logging via log_debug, set it to 0 to quietly drop log_debug messages.
+
+Has a coercion that arranges that any input that evaluates to a true value sets
+debug to 1 and otherwise sets it to 0.
+
+See L</_build_debug>.
+
+=method _build_debug
+
+Default builder for L</debug>.  Returns 0.
 
 =cut
 
-has debug => ( is => 'rw', isa => Bool, default => 0 );
+has debug => (
+    is      => 'rw',
+    isa     => Bool,
+    lazy    => 1,
+    builder => '_build_debug',
+    coerce  => sub { my $arg = shift; $arg ? 1 : 0 },
+);
+sub _build_debug { my $self = shift; return 0; }
 
 =attr failure_is_fatal
 
-A read-write boolean attribute, defaults to 1, that controls whether to die if
-logging a messages fails.
+A read-write boolean attribute that controls whether to die if logging a
+messages fails.
+
+Has a coercion that arranges that any input that evaluates to a true value sets
+debug to 1 and otherwise sets it to 0.
+
+See L</_build_failure_is_fatal>.
+
+=method _build_failure_is_fatal
+
+Default builder for L</failure_is_fatal>.  Returns 1;
 
 =cut
 
-has failure_is_fatal => ( is => 'rw', isa => Bool, default => 1 );
+has failure_is_fatal => (
+    is      => 'rw',
+    isa     => Bool,
+    lazy    => 1,
+    builder => '_build_failure_is_fatal',
+    coerce  => sub { my $arg = shift; $arg ? 1 : 0 },
+);
+sub _build_failure_is_fatal { my $self = shift; return 1; }
 
 =attr flogger
 
