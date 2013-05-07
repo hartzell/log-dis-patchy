@@ -5,6 +5,8 @@ use Test::Roo;
 use lib qw(t/lib);
 with qw(Test::Log::Dis::Patchy::RoleTester);
 
+use Test::Exception;
+
 {
 
     package LDP;
@@ -64,6 +66,18 @@ test 'build a proxy, is it cool?' => sub {
         [ superhashof( { message => 'prefix: testing 321' } ) ],
         'check proxy clear_prefix'
     );
+
+    # test mute and log_fatal interaction.
+    $logger->reset_messages;
+    $proxy->mute();
+    $proxy->log('testing 321');
+    dies_ok { $proxy->log_fatal("a testing fatality"); } 'log_fatal dies';
+    cmp_deeply(
+        $logger->messages,
+        [ superhashof( { message => 'prefix: a testing fatality' } ) ],
+        'check proxy log_fatal'
+    );
+
 };
 
 run_me(
