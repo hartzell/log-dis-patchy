@@ -3,7 +3,7 @@ package Log::Dis::Patchy::Ouli;
 
 use namespace::autoclean;
 use Moo;
-with qw(Log::Dis::Patchy Log::Dis::Patchy::QuietFatal);
+with qw(Log::Dis::Patchy Log::Dis::Patchy::Ouli::QuietFatal);
 
 use Log::Dis::Patchy::Helpers qw(prepend_pid_callback);
 use MooX::Types::MooseLike::Base qw(AnyOf Bool Str Undef);

@@ -1,4 +1,4 @@
-package Log::Dis::Patchy::QuietFatal;
+package Log::Dis::Patchy::Ouli::QuietFatal;
 
 use namespace::autoclean;
 use Moo::Role;
