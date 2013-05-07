@@ -115,8 +115,6 @@ use Test::More;
 
 my $l = MyStdLogger->new( { ident => 'foo', } );
 
-$DB::single = 1;
-
 isa_ok( $l->_dispatcher, "Log::Dispatch" );
 
 use Log::Dis::Patchy::Proxy;

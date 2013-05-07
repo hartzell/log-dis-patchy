@@ -44,7 +44,6 @@ test 'ouli and patchy match(y...)' => sub {
     my $patchy_dispatcher_output
         = $self->patchy_logger->dispatcher->output($name);
 
-    $DB::single = 1 if ($name eq 'logfile');
     my @ouli_info
         = map { $ouli_dispatcher_output->{$_} } @{ $self->interesting_keys };
     my @patchy_info

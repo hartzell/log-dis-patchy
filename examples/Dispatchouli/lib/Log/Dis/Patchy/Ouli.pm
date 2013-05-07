@@ -19,7 +19,6 @@ has log_path => ( is => 'ro', isa => Str, );
 has log_pid => ( is => 'ro', isa => Bool, default => 0 );
 
 sub _build_debug {
-    $DB::single = 1;
     my $self = shift;
     $self->env_value('DEBUG');
 }
