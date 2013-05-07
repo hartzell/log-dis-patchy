@@ -1,6 +1,6 @@
 package Log::Dis::Patchy::Proxy;
 
-# ABSTRACT: Proxy object for Log::Dis::Patchy.
+# ABSTRACT: A Moo role for building proxy objects for Log::Dis::Patchy.
 
 =head1 SYNOPSIS
 
@@ -12,9 +12,8 @@ TODO
 
 =cut
 
-use Moo;
+use Moo::Role;
 
-use MooX::StrictConstructor;
 use namespace::autoclean;
 
 use MooX::Types::MooseLike::Base
