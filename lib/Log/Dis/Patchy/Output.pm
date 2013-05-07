@@ -10,6 +10,10 @@ TODO
 
 TODO
 
+A word about abbreviations: this role uses "ldo" as an abbreviation for
+L<Log::Dispatch::Output>, e.g. L</ldo_max_level> is an attribute that will be
+used to set the C<max_level> attribute of a L<Log::Dispatch::Output> subclass.
+
 =cut
 
 use namespace::autoclean;
@@ -91,6 +95,9 @@ Default builder for L</ldo_init_args>.  Sets C<name>, C<max_level> and
 C<min_level> using attributes supplied by this role.  See L</ldo_name>,
 L</ldo_max_level>, L</ldo_min_level>.
 
+Extend/override this method to pass more/different init_args to the
+L<Log::Dispatch::Output> subclass named by L</ldo_package_name>.
+
 =cut
 
 has ldo_init_args => ( is => 'lazy', isa => HashRef, );
@@ -107,7 +114,8 @@ sub _build_ldo_init_args {    ## no critic(ProhibitUnusedPrivateSubroutines)
 
 =attr output
 
-A lazy instance of a L<Log::Dispatch::Output> subclass.
+A lazy referecne instance of a L<Log::Dispatch::Output> subclass.  See
+L<_build_output>.
 
 =method _build_output
 
@@ -131,18 +139,6 @@ sub _build_output {    ## no critic(ProhibitUnusedPrivateSubroutines)
     return $package->new(%init_args);
 }
 
-=requires _build_ldo_name
-
-Builder for L</ldo_name>, must return a name for the L<Log::Dispatch::Output>
-subclass instance.
-
-=requires _build_ldo_package_name
-
-Builder for L</ldo_package_name>, must return a name of the package that
-defines the L<Log::Dispatch::Output> subclass that will be instantiated.
-
-=cut
-
 =attr _patchy
 
 For internal use only.  No user-serviceable parts inside.
@@ -160,6 +156,18 @@ has _patchy => (
     isa      => ConsumerOf ['Log::Dis::Patchy'],
     weak     => 1,
 );
+
+=requires _build_ldo_name
+
+Builder for L</ldo_name>, must return a name for the L<Log::Dispatch::Output>
+subclass instance.
+
+=requires _build_ldo_package_name
+
+Builder for L</ldo_package_name>, must return a name of the package that
+defines the L<Log::Dispatch::Output> subclass that will be instantiated.
+
+=cut
 
 requires qw( _build_ldo_name _build_ldo_package_name );
 
