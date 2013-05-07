@@ -21,7 +21,7 @@ use Class::Load qw(load_class);
 use Data::OptList;
 use Log::Dispatch;
 use MooX::Types::MooseLike::Base qw(AnyOf ArrayRef Bool CodeRef ConsumerOf
-    Enum InstanceOf Str Undef);
+    InstanceOf Str Undef);
 use Params::Util qw(_ARRAY0 _HASH0 _CODELIKE);
 use Try::Tiny;
 
