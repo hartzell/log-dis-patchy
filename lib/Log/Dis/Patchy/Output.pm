@@ -114,7 +114,7 @@ sub _build_ldo_init_args {    ## no critic(ProhibitUnusedPrivateSubroutines)
 
 =attr output
 
-A lazy referecne instance of a L<Log::Dispatch::Output> subclass.  See
+A lazy reference to an instance of a L<Log::Dispatch::Output> subclass.  See
 L<_build_output>.
 
 =method _build_output
