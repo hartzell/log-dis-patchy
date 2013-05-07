@@ -1,0 +1,27 @@
+
+These packages use Log::Dis::Patchy to reimplement Log::Dispatchouli.
+It should be a drop-in replacement, just replaces references to
+Log::Dispatchouli with Log::Dis::Patchy::Ouli and away you go.  It is
+intended as an example, no warranty, no promises.  If it breaks
+something you get to keep the pieces.
+
+Log::Dis::Patchy::Ouli is a Moo class that consumes the ...::Patchy
+role and a role that blends in support for QuietFatal.  It defines a
+bunch of boolean knobs that {dis,en}able various output classes.  It
+also defines several configuration variables (e.g. log_file) that
+some of the output classes use.
+
+There are a set of Log::Dis::Patchy::Output classes that provide
+properly configured instances of various Log::Dispatch::Output
+classes.  They peek back up into the parent ...::Ouli instance to pick
+up various configuration tidbits (e.g. log_file).
+
+A bunch of compatibility shims paper over small differences (Patchy
+uses "messages", Ouli uses "events", etc...).
+
+I didn't bother with debug()/info()/... short forms.  debug() in
+particular is difficult given that Patchy uses it as a Moo provided
+attribute (where L::Dispatchouli hand rolls its own {get,set}_debug
+accessors.
+
+No proxy or global support [yet].
