@@ -3,6 +3,7 @@
 use strict;
 use warnings;
 use Test::More;
+use Test::Deep;
 
 {
 
@@ -118,11 +119,21 @@ my $l = MyStdLogger->new( { ident => 'foo', } );
 isa_ok( $l->_dispatcher, "Log::Dispatch" );
 
 $l->mute();
-$l->log("shite!");
+$l->log("a message");
 $l->unmute();
-$l->log("bollocks!");
-$l->log_debug("debugging shite!");
+$l->log("another message");
+$l->log_debug("debugging message");
 $l->debug(1);
-$l->log_debug("debugging bollocks");
+$l->log_debug("another debugging message");
+
+cmp_deeply(
+    $l->messages,
+    [   superhashof( { level => 'info', message => "[$$] another message" } ),
+        superhashof(
+            { level => 'debug', message => "[$$] another debugging message" }
+        ),
+    ],
+    'simple test'
+);
 
 done_testing;
