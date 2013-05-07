@@ -18,10 +18,6 @@ has log_path => ( is => 'ro', isa => Str, );
 
 has log_pid => ( is => 'ro', isa => Bool, default => 0 );
 
-#         quiet_fatal - 'stderr' or 'stdout' or an arrayref of zero, one, or both
-#                       fatal log messages will not be logged to these
-#                       (default: stderr)
-
 sub _build_debug {
     $DB::single = 1;
     my $self = shift;
