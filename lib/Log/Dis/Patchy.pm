@@ -1,14 +1,109 @@
 package Log::Dis::Patchy;
 
-# ABSTRACT: Easy way to build your own Log::Dispatch wrapper
+# ABSTRACT: Custom Log::Dispatch loggers made easy.
 
 =head1 SYNOPSIS
 
-TODO
+    # see t/trivia.t
+    {
+        package TrivialOutput;
+        use Moo;
+
+        use Log::Dis::Patchy::Helpers qw(append_newline_callback);
+
+        sub _build_ldo_name         {'an_output'}
+        sub _build_ldo_package_name {'Log::Dispatch::Screen'}
+
+        with 'Log::Dis::Patchy::Output';
+
+        around _build_ldo_init_args => sub {
+            my ( $orig, $self ) = ( shift, shift );
+            my $args = $self->$orig(@_);
+
+            $args->{callbacks} = [ append_newline_callback() ];
+            return $args;
+        };
+    }
+
+    {
+        package TrivialLogger;
+        use Moo;
+
+        use Log::Dis::Patchy::Helpers qw(prepend_pid_callback);
+
+        sub _build_outputs   { ['TrivialOutput'] }
+        sub _build_callbacks { [prepend_pid_callback] }
+
+        with qw(Log::Dis::Patchy);
+    }
+
+    my $l = TrivialLogger->new( { ident => 'trivial', } );
+
+    $l->mute();
+    $l->log("a message");
+    $l->unmute();
+    $l->log("another message");
+    $l->log_debug("debugging message");
+    $l->debug(1);
+    $l->log_debug("another debugging message");
+
+Should produce something like this:
+
+    [9121] another message
+    [9121] another debugging message
 
 =head1 DESCRIPTION
 
-TODO
+L<Log::Dis::Patchy> is the result of a head-on collision between my
+appreciation for the simple set of standard behaviors embodied in
+L<Log::Dispatchouli> and my frustration with how difficult it was to make it use
+my sensible defaults instead of RJBS's.
+
+It's pretty straightforward to string together the L<Log::Dispatch> components
+to get the behavior you want in Project A and you can pretty much cut-and-paste
+that into Project B with a couple of B specific changes (maybe you change an
+output filename), ditto with Project C, and so on.  Even though
+L<Log::Dispatch> isn't complicated, each Project becomes an opportunity to
+waste energy screwing up in new and interesting ways.
+
+If you're RJBS, you look at the various ways you've used L<Log::Dispatch>, whip
+up a basic logging class with simple knobs that enable your use cases and
+release it as L<Log::Dispatchouli>.  If you're anyone else and you can fit your
+use case into RJBS's cubbies then you're good to go too.
+
+If you'd rather use L<Log::Dispatch::Screen::Colored> instead of
+L<Log::Dispatch::Screen> or want to use different callbacks or ... then you're
+back to square one.  Being extensible is not L<Log::Dispatchouli>'s strong
+suit.
+
+L<Log::Dis::Patchy> gives you a clean way to package up
+L<Log::Dispatch::Output> subclasses using your defaults and the knobs that you
+find useful, to hook them into a L<Log::Dispatch> instance that is configured
+the way that you like, and then wrap them up in something with a dead-simple
+interface.  The resulting logger is very similar to what L<Log::Dispatchouli>
+provides, in fact there's an example, L<Log::Dis::Patchy::Ouli>, that passes
+L<Log::Dispatch>'s test suite.
+
+In other words it does pretty much what L<Log::Dispatchouli> does, but it lets
+you do it your way.
+
+=head2 Comparison with L<Log::Dispatchouli>
+
+=for :list
+* we use 'failure_is_fatal' where Log::Dispathouli uses 'fail_fatal'.
+* we use 'messages' and 'reset_messages' where Log::Dispathouli uses 'events'
+  and 'clear_events'
+* we use debug as an accessor for the L</debug> attribute, it is therefor
+  not available to be a shorthand for L</log_debug>.
+
+That said
+
+=for :list
+* see C<examples/Dispatchouli> for a L<Log::Dis::Patchy> based re-implementation
+  of L<Log::Dispatchouli> that is good enough to pass L<Log::Dispatchouli>'s
+  test suite.
+* see C<examples/DispatchouliGlobal> for an example of using a
+  L<Log::Dis::Patchy> based logger with L<Log::Dispatchouli::Global>.
 
 =cut
 
@@ -509,16 +604,14 @@ L</outputs>.
 
 requires qw(_build_outputs);
 
-=head1 VS DISPATCHOULI
-
-=for :list
-* we use 'failure_is_fatal' where Log::Dispathouli uses 'fail_fatal'.
-* we use 'messages' and 'reset_messages' where Log::Dispathouli uses 'events'
-  and 'clear_events'
-
 =head1 SEE ALSO
 
 =for :list
+* L<Log::Dispatch>
+* L<Log::Dispatch::Output>
+* L<Log::Dispatchouli>
+* L<Log::Dispatchouli::Proxy>
+* L<Log::Dispatchouli::Global>
 * L<Data::OptList>
 
 =cut

@@ -4,11 +4,19 @@ package Log::Dis::Patchy::Proxy;
 
 =head1 SYNOPSIS
 
-TODO
+    package MyProxy;
+    use Moo;
+
+    with qw(Log::Dis::Patchy::Proxy);
+    1;
 
 =head1 DESCRIPTION
 
-TODO
+This role makes it simple to build a proxy class (in the spirit of
+L<Log::Dispatchouli::Proxy>) for your L<Log::Dis::Patchy> class.
+
+The resulting class works so much like a L<Log::Dispatchouli::Proxy> class that
+it's amazing.  And useful....
 
 =cut
 

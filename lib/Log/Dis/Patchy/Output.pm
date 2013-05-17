@@ -4,11 +4,32 @@ package Log::Dis::Patchy::Output;
 
 =head1 SYNOPSIS
 
-TODO
+    package TrivialOutput;
+    use Moo;
+
+    use Log::Dis::Patchy::Helpers qw(append_newline_callback);
+
+    sub _build_ldo_name         {'an_output'}
+    sub _build_ldo_package_name {'Log::Dispatch::Screen'}
+
+    with 'Log::Dis::Patchy::Output';
+
+    around _build_ldo_init_args => sub {
+        my ( $orig, $self ) = ( shift, shift );
+        my $args = $self->$orig(@_);
+
+        $args->{callbacks} = [ append_newline_callback() ];
+        return $args;
+    };
 
 =head1 DESCRIPTION
 
-TODO
+This role make it easy to build a class that L<Log::Dis::Patchy> can use to
+instantiate a L<Log::Dispatch::Output> subclass.  At it's most basic, just
+provide builders for C<ldo_name> and C<ldo_package_name> and away you go.
+You're free to wrap e.g. the routine that builds the init args for the
+L<Log::Dispatch::Output> object and customize it to your heart's content.  Have
+it my way is the name of game.
 
 A word about abbreviations: this role uses "ldo" as an abbreviation for
 L<Log::Dispatch::Output>, e.g. L</ldo_max_level> is an attribute that will be

@@ -8,11 +8,15 @@ package Log::Dis::Patchy::Helpers;
 
 =head1 SYNOPSIS
 
-TODO
+    use Log::Dis::Patchy::Helpers qw(prepend_pid_callback);
+
+    ...;
+    sub _build_callbacks { [ prepend_pid_callback ] }
 
 =head1 DESCRIPTION
 
-TODO
+Provides useful subroutines that generate subroutines that can be used as
+L<Log::Dispatch> style callbacks.
 
 Exported using L<Sub::Exporter>, renaming supported, etc...
 
