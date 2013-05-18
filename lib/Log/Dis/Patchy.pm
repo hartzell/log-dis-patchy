@@ -56,8 +56,8 @@ Should produce something like this:
 
 L<Log::Dis::Patchy> is the result of a head-on collision between my
 appreciation for the simple set of standard behaviors embodied in
-L<Log::Dispatchouli> and my frustration with how difficult it was to make it use
-my sensible defaults instead of RJBS's.
+L<Log::Dispatchouli> and my frustration with how difficult it was to make it
+use my sensible defaults instead of RJBS's (sensibly different) defaults.
 
 It's pretty straightforward to string together the L<Log::Dispatch> components
 to get the behavior you want in Project A and you can pretty much cut-and-paste
