@@ -55,7 +55,7 @@ has parent => (
     is  => 'ro',
     isa => AnyOf [
         ConsumerOf ['Log::Dis::Patchy'],
-        InstanceOf ['Log::Dis::Patchy::Proxy'],
+        ConsumerOf ['Log::Dis::Patchy::Proxy'],
     ],
     required => 1,
     handles  => [qw(messages reset_messages ident config_id)],
@@ -286,6 +286,26 @@ sub log_debug {
 
     return $self->log( $opt, @rest );
 }
+
+=method proxy
+
+Return an LDP::Proxy instance with the caller as its parent.  Accepts a hashref
+of options.  See L<Log::Dis::Patchy::Proxy>.
+
+=cut
+
+sub proxy {
+    my $self = shift;
+    my $opt = shift || {};
+
+    my $p = $self->parent->proxy(
+        {   parent => $self,
+            %{$opt},
+        }
+    );
+    return $p;
+}
+
 
 =head1 SEE ALSO
 

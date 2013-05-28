@@ -13,6 +13,7 @@ use Test::Exception;
     use Moo;
     sub _build_outputs { ['LDPO'] }
     with qw(Log::Dis::Patchy);
+    sub _build__proxy_package { 'LDPP' }
 }
 
 {
@@ -77,6 +78,16 @@ test 'build a proxy, is it cool?' => sub {
         [ superhashof( { message => 'prefix: a testing fatality' } ) ],
         'check proxy log_fatal'
     );
+    $proxy->unmute();
+
+    $logger->reset_messages;
+    my $pp = $proxy->proxy({proxy_prefix => 'pp: '});
+    $pp->log('a double proxy test');
+    cmp_deeply(
+        $logger->messages,
+        [ superhashof( { message => 'prefix: pp: a double proxy test' } ) ],
+        'check double proxy'
+    );
 
 };
 
@@ -100,6 +111,7 @@ run_me(
 
                 log log_debug log_fatal
 
+                proxy
                 parent _assert_parent
                 )
         ],
