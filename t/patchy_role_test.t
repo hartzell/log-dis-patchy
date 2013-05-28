@@ -99,6 +99,8 @@ run_me(
 
                 log
                 log_debug
+                log_error
+                log_info
                 log_fatal
 
                 messages reset_messages

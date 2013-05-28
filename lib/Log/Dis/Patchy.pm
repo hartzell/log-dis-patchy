@@ -475,6 +475,41 @@ sub log {    ## no critic(ProhibitBuiltinHomonyms)
     return;
 }
 
+=method log_info
+
+Log a message at the B<error> level, just hands off to L</log>.
+
+=cut
+
+sub log_info {
+    my ( $self, @rest) = @_;
+    return $self->log( @rest );
+}
+
+=method log_error
+
+Log a message at the B<error> level.
+
+If the first argument is a hashref it is taken to be a set of options.  In
+addition to the options that L</log> accepts, valid options include:
+
+=for :list
+level - level at which to log the message, defaults to 'error'.
+
+Similar to L<Log::Dispatchouli::log_debug>.
+
+=cut
+
+sub log_error {
+    my ( $self, @rest ) = @_;
+
+    my $opt = _HASH0( $rest[0] ) ? shift(@rest) : {};   # for future expansion
+
+    local $opt->{level} = defined $opt->{level} ? $opt->{level} : 'error';
+
+    return $self->log( $opt, @rest );
+}
+
 =method log_debug
 
 Log a debug message.  A no-op unless L</debug> evaluates to a true value.
@@ -588,7 +623,7 @@ sub proxy {
     my $opt = shift || {};
 
     my $p = $self->_proxy_package->new(
-        {   logger => $self,
+        {   parent => $self,
             %{$opt},
         }
     );
