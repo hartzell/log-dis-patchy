@@ -120,7 +120,7 @@ run_me(
     {   role_name     => 'Log::Dis::Patchy',
         expected_subs => [
             qw(
-                _dispatcher _build__dispatcher
+                _dispatcher _build__dispatcher _clear_dispatcher
                 _patchy_outputs _build__patchy_outputs
                 callbacks _build_callbacks
                 config_id _build_config_id

@@ -360,6 +360,7 @@ has _dispatcher => (
     is       => 'lazy',
     isa      => InstanceOf ['Log::Dispatch'],
     init_arg => undef,
+    clearer => 1,
 );
 
 sub _build__dispatcher {    ## no critic(ProhibitUnusedPrivateSubroutines)
