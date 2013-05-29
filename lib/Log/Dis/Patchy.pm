@@ -439,6 +439,12 @@ sub log {    ## no critic(ProhibitBuiltinHomonyms)
 
     my $message;
 
+    # short circuit debug stuff if we're not debugging.
+    return
+        if ( defined $opt->{level}
+        && $opt->{level} eq 'debug'
+        && !$self->debug );
+
     if ( $opt->{fatal} or not $self->muted ) {
         try {
             my @flogged = map { $self->flogger->flog($_) } @rest;
@@ -477,14 +483,33 @@ sub log {    ## no critic(ProhibitBuiltinHomonyms)
 
 =method log_info
 
-Log a message at the B<error> level, just hands off to L</log>.
+Log a message at the B<info> level.
 
-=cut
+If the first argument is a hashref it is taken to be a set of options.  In
+addition to the options that L</log> accepts, valid options include:
 
-sub log_info {
-    my ( $self, @rest) = @_;
-    return $self->log( @rest );
-}
+=for :list
+level - level at which to log the message, defaults to 'info'.
+
+=method log_notice
+
+Log a message at the B<notice> level.
+
+If the first argument is a hashref it is taken to be a set of options.  In
+addition to the options that L</log> accepts, valid options include:
+
+=for :list
+level - level at which to log the message, defaults to 'notice'.
+
+=method log_warning
+
+Log a message at the B<warning> level.
+
+If the first argument is a hashref it is taken to be a set of options.  In
+addition to the options that L</log> accepts, valid options include:
+
+=for :list
+level - level at which to log the message, defaults to 'warning'.
 
 =method log_error
 
@@ -496,9 +521,57 @@ addition to the options that L</log> accepts, valid options include:
 =for :list
 level - level at which to log the message, defaults to 'error'.
 
-Similar to L<Log::Dispatchouli::log_debug>.
+=method log_critical
+
+Log a message at the B<critical> level.
+
+If the first argument is a hashref it is taken to be a set of options.  In
+addition to the options that L</log> accepts, valid options include:
+
+=for :list
+level - level at which to log the message, defaults to 'critical'.
+
+=method log_alert
+
+Log a message at the B<alert> level.
+
+If the first argument is a hashref it is taken to be a set of options.  In
+addition to the options that L</log> accepts, valid options include:
+
+=for :list
+level - level at which to log the message, defaults to 'alert'.
+
+=method log_emergency
+
+Log a message at the B<emergency> level.
+
+If the first argument is a hashref it is taken to be a set of options.  In
+addition to the options that L</log> accepts, valid options include:
+
+=for :list
+level - level at which to log the message, defaults to 'emergency'.
 
 =cut
+
+{
+    use Package::Stash;
+    my $stash = Package::Stash->new(__PACKAGE__);
+    for my $level (
+        qw(debug info notice warning error critical alert emergency))
+    {
+        my $s = sub {
+            my ( $self, @rest ) = @_;
+            my $opt
+                = _HASH0( $rest[0] )
+                ? shift(@rest)
+                : {};    # for future expansion
+            local $opt->{level}
+                = defined $opt->{level} ? $opt->{level} : $level;
+            return $self->log( $opt, @rest );
+        };
+        $stash->add_symbol( "&log_$level", $s );
+    }
+}
 
 sub log_error {
     my ( $self, @rest ) = @_;
@@ -506,32 +579,6 @@ sub log_error {
     my $opt = _HASH0( $rest[0] ) ? shift(@rest) : {};   # for future expansion
 
     local $opt->{level} = defined $opt->{level} ? $opt->{level} : 'error';
-
-    return $self->log( $opt, @rest );
-}
-
-=method log_debug
-
-Log a debug message.  A no-op unless L</debug> evaluates to a true value.
-
-If the first argument is a hashref it is taken to be a set of options.  In
-addition to the options that L</log> accepts, valid options include:
-
-=for :list
-level - level at which to log the message, defaults to 'debug'.
-
-Verbatim from Log::Dispatchouli.
-
-=cut
-
-sub log_debug {
-    my ( $self, @rest ) = @_;
-
-    return unless $self->debug;
-
-    my $opt = _HASH0( $rest[0] ) ? shift(@rest) : {};   # for future expansion
-
-    local $opt->{level} = defined $opt->{level} ? $opt->{level} : 'debug';
 
     return $self->log( $opt, @rest );
 }

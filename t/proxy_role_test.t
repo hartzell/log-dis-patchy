@@ -13,7 +13,7 @@ use Test::Exception;
     use Moo;
     sub _build_outputs { ['LDPO'] }
     with qw(Log::Dis::Patchy);
-    sub _build__proxy_package { 'LDPP' }
+    sub _build__proxy_package {'LDPP'}
 }
 
 {
@@ -81,7 +81,7 @@ test 'build a proxy, is it cool?' => sub {
     $proxy->unmute();
 
     $logger->reset_messages;
-    my $pp = $proxy->proxy({proxy_prefix => 'pp: '});
+    my $pp = $proxy->proxy( { proxy_prefix => 'pp: ' } );
     $pp->log('a double proxy test');
     cmp_deeply(
         $logger->messages,
@@ -89,6 +89,46 @@ test 'build a proxy, is it cool?' => sub {
         'check double proxy'
     );
 
+};
+
+test 'check that the various log levels are hooked up.' => sub {
+    my $self = shift;
+    my $logger = LDP->new( { ident => 'log_level_test' } );
+    my $proxy
+        = LDPP->new( { parent => $logger, proxy_prefix => 'prefix: ' } );
+
+    $logger->debug(1);
+    isa_ok( $logger, 'LDP', 'The logger' );
+    isa_ok( $proxy,  'LDPP', 'The proxy' );
+
+    $proxy->log("quick test of log method");
+    cmp_deeply(
+        $logger->messages,
+        [   {   level   => 'info',
+                message => 'prefix: quick test of log method',
+                name    => 'test_output'
+            }
+        ],
+        'test a simple log message'
+    );
+    $logger->reset_messages;
+
+    for my $level (
+        qw(debug info notice warning error critical alert emergency))
+    {
+        my $method = "log_$level";
+        $proxy->$method("testing $level");
+        cmp_deeply(
+            $logger->messages,
+            [   {   level   => $level,
+                    message => "prefix: testing $level",
+                    name    => 'test_output'
+                }
+            ],
+            "test a simple log message at level: $level"
+        );
+        $logger->reset_messages;
+    }
 };
 
 run_me(
@@ -109,7 +149,17 @@ run_me(
                 ident
                 config_id
 
-                log log_debug log_error log_fatal
+                log
+                log_fatal
+
+                log_debug
+                log_info
+                log_notice
+                log_warning
+                log_error
+                log_critical
+                log_alert
+                log_emergency
 
                 proxy
                 parent _assert_parent

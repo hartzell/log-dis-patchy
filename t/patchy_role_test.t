@@ -79,6 +79,42 @@ test 'build a logger, is it cool?' => sub {
 
 };
 
+test 'check that the various log levels are hooked up.' => sub {
+    my $self = shift;
+    my $logger = LDP->new( { ident => 'log_level_test' } );
+
+    $logger->debug(1);
+    isa_ok( $logger, 'LDP', 'The logger' );
+    $logger->log("quick test of log method");
+    cmp_deeply(
+        $logger->messages,
+        [   {   level   => 'info',
+                message => 'quick test of log method',
+                name    => 'test_output'
+            }
+        ],
+        'test a simple log message'
+    );
+    $logger->reset_messages;
+
+    for my $level (
+        qw(debug info notice warning error critical alert emergency))
+    {
+        my $method = "log_$level";
+        $logger->$method("testing $level");
+        cmp_deeply(
+            $logger->messages,
+            [   {   level   => $level,
+                    message => "testing $level",
+                    name    => 'test_output'
+                }
+            ],
+            "test a simple log message at level: $level"
+        );
+        $logger->reset_messages;
+    }
+};
+
 run_me(
     'test Log::Dis::Patchy',
     {   role_name     => 'Log::Dis::Patchy',
@@ -98,10 +134,16 @@ run_me(
                 prefix clear_prefix
 
                 log
-                log_debug
-                log_error
-                log_info
                 log_fatal
+
+                log_debug
+                log_info
+                log_notice
+                log_warning
+                log_error
+                log_critical
+                log_alert
+                log_emergency
 
                 messages reset_messages
 

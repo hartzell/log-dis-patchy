@@ -247,16 +247,61 @@ sub log {    ## no critic(ProhibitBuiltinHomonyms)
     return $self->parent->log( $opt, @rest );
 }
 
+=method log_info
+
+Logs an info message.  Sets the B<level> option to 'info' and calls the
+instances C<log> method.
+
+=method log_notice
+
+Logs a notice message.  Sets the B<level> option to 'notice' and calls the
+instances C<log> method.
+
+=method log_warning
+
+Logs a warning message.  Sets the B<level> option to 'warning' and calls the
+instances C<log> method.
+
 =method log_error
 
-Logs an error message.  See L<Log::Dis::Patchy/log_error>.  If the first
-argument is a hashref it is taken to be a hashref of options.
+Logs an error message.  Sets the B<level> option to 'error' and calls the
+instances C<log> method.
+
+=method log_critical
+
+Logs a critical message.  Sets the B<level> option to 'critical' and calls the
+instances C<log> method.
+
+=method log_alert
+
+Logs an info message.  Sets the B<level> option to 'alert' and calls the
+instances C<log> method.
+
+=method log_emergency
+
+Logs an emergency message.  Sets the B<level> option to 'emergency' and calls the
+instances C<log> method.
 
 =cut
 
-sub log_error {
-    my ( $self, @rest ) = @_;
-    return $self->parent->log_error( @rest );
+{
+    use Package::Stash;
+    my $stash = Package::Stash->new(__PACKAGE__);
+    for my $level (
+        qw(debug info notice warning error critical alert emergency))
+    {
+        my $s = sub {
+            my ( $self, @rest ) = @_;
+            my $opt
+                = _HASH0( $rest[0] )
+                ? shift(@rest)
+                : {};    # for future expansion
+            local $opt->{level}
+                = defined $opt->{level} ? $opt->{level} : $level;
+            return $self->log( $opt, @rest );
+        };
+        $stash->add_symbol( "&log_$level", $s );
+    }
 }
 
 =method log_fatal
