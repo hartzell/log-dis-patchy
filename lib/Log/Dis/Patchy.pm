@@ -111,7 +111,7 @@ use namespace::autoclean;
 
 use Moo::Role;
 
-use Carp;
+use Carp qw(croak);
 use Class::Load qw(load_class);
 use Data::OptList;
 use Log::Dispatch;
@@ -466,7 +466,7 @@ sub log {    ## no critic(ProhibitBuiltinHomonyms)
         }
         catch {
             $message = '(no message could be logged)' unless defined $message;
-            croak $_ if $self->{failure_is_fatal};
+            croak $_ if $self->failure_is_fatal;
         };
     }
 

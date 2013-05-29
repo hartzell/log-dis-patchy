@@ -247,6 +247,18 @@ sub log {    ## no critic(ProhibitBuiltinHomonyms)
     return $self->parent->log( $opt, @rest );
 }
 
+=method log_error
+
+Logs an error message.  See L<Log::Dis::Patchy/log_error>.  If the first
+argument is a hashref it is taken to be a hashref of options.
+
+=cut
+
+sub log_error {
+    my ( $self, @rest ) = @_;
+    return $self->parent->log_error( @rest );
+}
+
 =method log_fatal
 
 Logs a fatal message.  See L<Log::Dis::Patchy/log_fatal>.  If the first
