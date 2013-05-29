@@ -310,6 +310,25 @@ Each prefix is applied to the message (see L</prefix>).
 
 Almost, but not quite verbatim from Log::Dispatchouli.
 
+=head2 log_info
+
+Log a message at the B<error> level, just hands off to L</log>.
+
+=head2 log_error
+
+Log a message at the B<error> level.
+
+If the first argument is a hashref it is taken to be a set of options.  In
+addition to the options that L</log> accepts, valid options include:
+
+=over 4
+
+level - level at which to log the message, defaults to 'error'.
+
+=back
+
+Similar to L<Log::Dispatchouli::log_debug>.
+
 =head2 log_debug
 
 Log a debug message.  A no-op unless L</debug> evaluates to a true value.

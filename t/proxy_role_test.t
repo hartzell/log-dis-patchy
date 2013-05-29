@@ -109,7 +109,7 @@ run_me(
                 ident
                 config_id
 
-                log log_debug log_fatal
+                log log_debug log_error log_fatal
 
                 proxy
                 parent _assert_parent
